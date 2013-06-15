@@ -24,7 +24,7 @@ of side-chain attack vector.
 
 ## A local whitelist
 
-The Bitcoin Enforcer Rules work with the [Maven Enforcer Plugin](http://maven.apache.org/enforcer/maven-enforcer-plugin/)
+The Bitcoinj Enforcer Rules work with the [Maven Enforcer Plugin](http://maven.apache.org/enforcer/maven-enforcer-plugin/)
 to provide such a whitelist. You can choose how detailed you want it to be depending on your own security requirements,
 but bear in mind that every unchecked dependency is a way in for an attacker through the back door.
 

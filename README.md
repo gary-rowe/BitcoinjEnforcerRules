@@ -8,11 +8,21 @@ without involving a third party.
 This means that if the Bitcoinj JAR was corrupted, or made use of a corrupted library, then there is a high probability
 that your Bitcoin private keys would be obtained and used to spend any and all funds that they controlled.
 
-For example, if, say, SLF4J (populate logging framework) was hacked and code placed within to reflectively search for
-private keys how would you detect that in your Maven build? You may think that the SHA1 and MD5 signatures would protect
-you, but in the event of a successful attack against Maven Central they would match the digest of the downloaded
-artifact. In the absence of a controlled white list of permitted libraries there is little that can be done within the
-Maven environment to protect yourself against this kind of side-chain attack vector.
+## How a side-chain attack works
+
+Imagine that SLF4J (the popular logging framework) was hacked because it was known that Bitcoinj (or your software) uses
+it. As part of the hack some code was introduced which was designed to reflectively search for objects used by Bitcoinj
+on its classpath as part of its private key handling code. Since the hack is right at the source it can be assumed that
+the signing key for Maven Central is compromised.
+
+How would you detect that in your Maven build?
+
+You may think that the SHA1 and MD5 signatures would protect you, but in the event of a successful attack against
+Maven Central (or a mirror) they would match the digest of the downloaded artifact. In the absence of a controlled white list of
+permitted libraries there is little that can be done within the Maven environment to protect yourself against this kind
+of side-chain attack vector.
+
+## A local whitelist
 
 The Bitcoin Enforcer Rules work with the [Maven Enforcer Plugin](http://maven.apache.org/enforcer/maven-enforcer-plugin/)
 to provide such a whitelist. You can choose how detailed you want it to be depending on your own security requirements,

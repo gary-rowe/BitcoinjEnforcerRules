@@ -79,3 +79,18 @@ git repository when including it into your project.
 </build>
 
 ```
+
+## How to use it
+
+The enforcer plugin is triggered before the resource phase so it will trap problems very early in the build process.
+You may want to grep/find on a case-sensitive match for "URN" to find the verification messages.
+
+You can try it out on itself by building it within this reactor project:
+
+```shell
+mvn clean install
+```
+
+The reactor will first build the Bitcoinj Enforcer Rules and then go on to build another artifact that depends on them
+working (the Rule Tester project). This second project demonstrates how you would include Bitcoinj Enforcer Rules in
+ your projects.

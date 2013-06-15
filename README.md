@@ -10,7 +10,7 @@ that your Bitcoin private keys would be obtained and used to spend any and all f
 
 ## How a side-chain attack works
 
-Imagine that SLF4J (the popular logging framework) was hacked because it was known that Bitcoinj (or your software) uses
+Imagine that [SLF4J](http://www.slf4j.org/) (the popular logging framework) was hacked because it was known that Bitcoinj (or your software) uses
 it. As part of the hack some code was introduced which was designed to reflectively search for objects used by Bitcoinj
 on its classpath as part of its private key handling code. Since the hack is right at the source it can be assumed that
 the signing key for Maven Central is compromised.
@@ -52,8 +52,7 @@ git repository when including it into your project.
                 <!-- classifier is "null" if not present -->
                 <!-- algorithm is "sha1" or "md5" with "sha1" preferred -->
                 <urns>
-                  <urn>com.google:bitcoinj:0.5.0:jar:null:compile:sha1:923164f40d38caa012ca08861092dd1d5ee6f4b9</urn>
-                  <urn>org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile:md5:d726ceb2dcc711ef066cc639c12d856128ea1ef1</urn>
+                    <urn>org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile:sha1:d726ceb2dcc711ef066cc639c12d856128ea1ef1</urn>
                 </urns>
               </digestRule>
             </rules>
@@ -68,7 +67,7 @@ git repository when including it into your project.
       <dependencies>
         <dependency>
           <groupId>com.google.bitcoinj</groupId>
-          <artifactId>bitcoinj-com.google.bitcoinj.enforcer-rules</artifactId>
+          <artifactId>bitcoinj-enforcer-rules</artifactId>
           <version>0.0.1-SNAPSHOT</version>
         </dependency>
       </dependencies>

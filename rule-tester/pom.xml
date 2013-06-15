@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.google.bitcoinj</groupId>
+    <artifactId>bitcoinj-enforcer-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>rule-tester</artifactId>
+
+  <name>Bitcoinj Rule Tester</name>
+  <description>A simple build that exercises the various Bitcoinj rules.</description>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <id>enforce</id>
+            <configuration>
+              <rules>
+                <digestRule implementation="com.google.bitcoinj.enforcer.DigestRule">
+                  <!-- List of required hashes -->
+                  <!-- Format is URN of groupId:artifactId:version:type:classifier:scope:algorithm:hash -->
+                  <!-- classifier is "null" if not present -->
+                  <!-- algorithm is "sha1" or "md5" with "sha1" preferred -->
+                  <urns>
+                    <urn>org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile:sha1:d726ceb2dcc711ef066cc639c12d856128ea1ef1</urn>
+                  </urns>
+                </digestRule>
+              </rules>
+            </configuration>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+          </execution>
+        </executions>
+
+        <dependencies>
+
+          <!-- Ensure we download the enforcer rules -->
+          <dependency>
+            <groupId>com.google.bitcoinj</groupId>
+            <artifactId>bitcoinj-com.google.bitcoinj.enforcer-rules</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+          </dependency>
+
+          <!-- Provide an example artifact -->
+          <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15</artifactId>
+            <version>1.46</version>
+          </dependency>
+
+        </dependencies>
+
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

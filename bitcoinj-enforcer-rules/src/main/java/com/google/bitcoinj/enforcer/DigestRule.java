@@ -50,6 +50,7 @@ public class DigestRule implements EnforcerRule {
     return false;
   }
 
+  @SuppressWarnings("deprecation")
   public void execute(EnforcerRuleHelper helper) throws EnforcerRuleException {
 
     Log log = helper.getLog();
@@ -61,6 +62,8 @@ public class DigestRule implements EnforcerRule {
       MavenProject project = (MavenProject) helper.evaluate("${project}");
 
       ArtifactRepository localRepository;
+
+      // Due to backwards compatibility issues the deprecated interface must be used here
       ArtifactFactory artifactFactory;
       ArtifactResolver resolver;
       try {

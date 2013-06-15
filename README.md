@@ -1,4 +1,4 @@
-Status: [![Build Status](https://travis-ci.org/gary-rowe/BitcoinEnforcerRules.png?branch=master)](https://travis-ci.org/gary-rowe/BitcoinEnforcerRules)
+Status: [![Build Status](https://travis-ci.org/gary-rowe/BitcoinjEnforcerRules.png?branch=master)](https://travis-ci.org/gary-rowe/BitcoinjEnforcerRules)
 
 ## Bitcoinj Enforcer Rules
 

@@ -61,7 +61,7 @@ public class DigestRule implements EnforcerRule {
 
     log.info("Applying DigestRule");
 
-    boolean failed=false;
+    boolean failed = false;
 
     try {
       // get the various expressions out of the helper.
@@ -125,81 +125,88 @@ public class DigestRule implements EnforcerRule {
         throw new EnforcerRuleException("At least one artifact has not met expectations.");
       }
 
-      if (buildSnapshot) {
-
-        log.info("Building snapshot whitelist of all current artifacts");
-
-        List<String> whitelist = new ArrayList<String>();
-
-        for (Artifact artifact: project.getDependencyArtifacts()) {
-
-          String artifactUrn = String.format("%s:%s:%s:%s:%s:%s",
-            artifact.getGroupId(),
-            artifact.getArtifactId(),
-            artifact.getVersion(),
-            artifact.getType(),
-            artifact.getClassifier(),
-            artifact.getScope()
-          );
-
-          log.debug("Examining artifact URN: "+artifactUrn);
-
-          // Read in the SHA1 signature file (if it exists)
-          File sha1File = new File(artifact.getFile().getAbsoluteFile()+".sha1");
-          File md5File = new File(artifact.getFile().getAbsoluteFile()+".md5");
-          String sha1Expected=null;
-          if (sha1File.exists()) {
-            sha1Expected = FileUtils.fileRead(sha1File).trim();
-            log.debug("Found SHA1:"+sha1Expected);
-          }
-          String md5Expected=null;
-          if (md5File.exists()) {
-            md5Expected = FileUtils.fileRead(md5File).trim();
-            log.debug("Found MD5:"+md5Expected);
-          }
-
-          // Check the reality
-          String sha1Actual = digest(artifact.getFile(), "sha1");
-          String md5Actual = digest(artifact.getFile(), "md5");
-
-          if (sha1Expected != null) {
-            if (!sha1Expected.equals(sha1Actual)) {
-              log.error("Artifact "+artifactUrn+" FAILED SHA1 verification. Expected='"+sha1Expected+"' Actual='"+sha1Actual+"'");
-            } else {
-              log.info("Artifact " + artifactUrn + " PASSED SHA1 verification.");
-              whitelist.add(artifactUrn+":sha1:"+sha1Actual);
-            }
-          } else {
-            log.warn("Artifact " + artifactUrn + " UNVERIFIED SHA1 verification (missing in repo).");
-          }
-
-          if (md5Expected != null) {
-            if (!md5Expected.equals(md5Actual)) {
-              log.error("Artifact "+artifactUrn+" FAILED MD5 verification. Expected='"+md5Expected+"' Actual='"+md5Actual+"'");
-            } else {
-              log.info("Artifact "+artifactUrn+" PASSED MD5 verification.");
-              whitelist.add(artifactUrn+":md5:"+md5Actual);
-            }
-          } else {
-            log.warn("Artifact "+artifactUrn+" UNVERIFIED MD5 verification (missing in repo).");
-          }
-
-        }
-
-        log.info("List of verified artifacts. If you are confident in the integrity of your repository you can use the list below:");
-        log.info("<urns>");
-        for (String urn: whitelist) {
-          log.info("  <urn>"+urn+"</urn>");
-        }
-        log.info("</urns>");
-
-      }
+      if (buildSnapshot) buildSnapshot(log, project);
 
     } catch (ExpressionEvaluationException e) {
       throw new EnforcerRuleException("Unable to lookup an expression " + e.getLocalizedMessage(), e);
     } catch (IOException e) {
       throw new EnforcerRuleException("Unable to read file " + e.getLocalizedMessage(), e);
     }
+  }
+
+  /**
+   * @param log     The project log
+   * @param project The project
+   *
+   * @throws IOException           If something goes wrong
+   * @throws EnforcerRuleException If something goes wrong
+   */
+  private void buildSnapshot(Log log, MavenProject project) throws IOException, EnforcerRuleException {
+    log.info("Building snapshot whitelist of all current artifacts");
+
+    List<String> whitelist = new ArrayList<String>();
+
+    for (Artifact artifact : project.getDependencyArtifacts()) {
+
+      String artifactUrn = String.format("%s:%s:%s:%s:%s:%s",
+        artifact.getGroupId(),
+        artifact.getArtifactId(),
+        artifact.getVersion(),
+        artifact.getType(),
+        artifact.getClassifier(),
+        artifact.getScope()
+      );
+
+      log.debug("Examining artifact URN: " + artifactUrn);
+
+      // Read in the SHA1 signature file (if it exists)
+      File sha1File = new File(artifact.getFile().getAbsoluteFile() + ".sha1");
+      File md5File = new File(artifact.getFile().getAbsoluteFile() + ".md5");
+      String sha1Expected = null;
+      if (sha1File.exists()) {
+        sha1Expected = FileUtils.fileRead(sha1File).trim();
+        log.debug("Found SHA1:" + sha1Expected);
+      }
+      String md5Expected = null;
+      if (md5File.exists()) {
+        md5Expected = FileUtils.fileRead(md5File).trim();
+        log.debug("Found MD5:" + md5Expected);
+      }
+
+      // Check the reality
+      String sha1Actual = digest(artifact.getFile(), "sha1");
+      String md5Actual = digest(artifact.getFile(), "md5");
+
+      if (sha1Expected != null) {
+        if (!sha1Expected.equals(sha1Actual)) {
+          log.error("Artifact " + artifactUrn + " FAILED SHA1 verification. Expected='" + sha1Expected + "' Actual='" + sha1Actual + "'");
+        } else {
+          log.info("Artifact " + artifactUrn + " PASSED SHA1 verification.");
+          whitelist.add(artifactUrn + ":sha1:" + sha1Actual);
+        }
+      } else {
+        log.warn("Artifact " + artifactUrn + " UNVERIFIED SHA1 verification (missing in repo).");
+      }
+
+      if (md5Expected != null) {
+        if (!md5Expected.equals(md5Actual)) {
+          log.error("Artifact " + artifactUrn + " FAILED MD5 verification. Expected='" + md5Expected + "' Actual='" + md5Actual + "'");
+        } else {
+          log.info("Artifact " + artifactUrn + " PASSED MD5 verification.");
+          whitelist.add(artifactUrn + ":md5:" + md5Actual);
+        }
+      } else {
+        log.warn("Artifact " + artifactUrn + " UNVERIFIED MD5 verification (missing in repo).");
+      }
+
+    }
+
+    log.info("List of verified artifacts. If you are confident in the integrity of your repository you can use the list below:");
+    log.info("<urns>");
+    for (String urn : whitelist) {
+      log.info("  <urn>" + urn + "</urn>");
+    }
+    log.info("</urns>");
   }
 
   /**

@@ -18,7 +18,7 @@ the signing key for Maven Central is compromised.
 How would you detect that in your Maven build?
 
 You may think that the SHA1 and MD5 signatures would protect you, but in the event of a successful attack against
-Maven Central (or a mirror) they would match the digest of the downloaded artifact. In the absence of a controlled white list of
+Maven Central (or a mirror) they would match the digest of the downloaded artifact. In the absence of a controlled whitelist of
 permitted libraries there is little that can be done within the Maven environment to protect yourself against this kind
 of side-chain attack vector.
 

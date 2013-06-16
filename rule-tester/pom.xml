@@ -33,37 +33,43 @@
                   <!-- classifier is "null" if not present -->
                   <!-- algorithm is "sha1" or "md5" with "sha1" preferred -->
                   <urns>
-                    <urn>org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile:sha1:d726ceb2dcc711ef066cc639c12d856128ea1ef1</urn>
+                    <urn>
+                      org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile:sha1:d726ceb2dcc711ef066cc639c12d856128ea1ef1
+                    </urn>
                   </urns>
+                  <buildSnapshot>true</buildSnapshot>
                 </digestRule>
               </rules>
             </configuration>
+            <phase>verify</phase>
             <goals>
               <goal>enforce</goal>
             </goals>
           </execution>
         </executions>
 
+        <!-- Ensure we download the enforcer rules -->
         <dependencies>
-
-          <!-- Ensure we download the enforcer rules -->
           <dependency>
             <groupId>com.google.bitcoinj</groupId>
             <artifactId>bitcoinj-com.google.bitcoinj.enforcer-rules</artifactId>
             <version>0.0.1-SNAPSHOT</version>
           </dependency>
-
-          <!-- Provide an example artifact -->
-          <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15</artifactId>
-            <version>1.46</version>
-          </dependency>
-
         </dependencies>
 
       </plugin>
     </plugins>
   </build>
+
+  <dependencies>
+
+    <!-- Provide an example artifact -->
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15</artifactId>
+      <version>1.46</version>
+    </dependency>
+
+  </dependencies>
 
 </project>

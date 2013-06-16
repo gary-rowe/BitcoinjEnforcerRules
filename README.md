@@ -46,7 +46,7 @@ git repository when including it into your project.
           <id>enforce</id>
           <configuration>
             <rules>
-              <digestRule implementation="com.google.bitcoinj.enforcer.SHA1SignatureRule">
+              <digestRule implementation="com.google.bitcoinj.enforcer.DigestRule">
                 <!-- List of required hashes -->
                 <!-- Format is URN of groupId:artifactId:version:type:classifier:scope:algorithm:hash -->
                 <!-- classifier is "null" if not present -->
@@ -54,16 +54,21 @@ git repository when including it into your project.
                 <urns>
                     <urn>org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile:sha1:d726ceb2dcc711ef066cc639c12d856128ea1ef1</urn>
                 </urns>
+
+                <!-- Set this to true to build a whitelist for your project after verification -->
+                <buildSnapshot>false</buildSnapshot>
               </digestRule>
             </rules>
           </configuration>
+          <phase>verify</phase>
           <goals>
             <goal>enforce</goal>
           </goals>
         </execution>
       </executions>
 
-      <!-- Ensure the rules are downloaded (we can include them in the URN whitelist) -->
+      <!-- Use a plugin-specific dependency set to ensure the rules are downloaded -->
+      <!-- (this artifact can be added to the whitelist if required) -->
       <dependencies>
         <dependency>
           <groupId>com.google.bitcoinj</groupId>
@@ -81,7 +86,9 @@ git repository when including it into your project.
 
 ## How to use it
 
-The enforcer plugin is triggered before the resource phase so it will trap problems very early in the build process.
+For maximum effect, the rules should be triggered during the `verify` phase so that all the dependencies that could affect
+the build will have been pulled in.
+
 You may want to grep/find on a case-sensitive match for "URN" to find the verification messages.
 
 You can try it out on itself by building it within this reactor project:

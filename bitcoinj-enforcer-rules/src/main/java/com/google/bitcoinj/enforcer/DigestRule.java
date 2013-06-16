@@ -24,6 +24,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Formatter;
 import java.util.List;
 
@@ -91,8 +92,8 @@ public class DigestRule implements EnforcerRule {
         log.info("Verifying URN: " + urn);
         // Decode it into artifact co-ordinates
         String[] coordinates = urn.split(":");
-        if (coordinates.length != 8) {
-          throw new EnforcerRuleException("Failing because URH '" + urn + "' is not in format 'groupId:artifactId:version:type:classifier:scope:algorithm:hash'");
+        if (coordinates.length != 7) {
+          throw new EnforcerRuleException("Failing because URN '" + urn + "' is not in format 'groupId:artifactId:version:type:classifier:scope:hash'");
         }
 
         String groupId = coordinates[0];
@@ -101,8 +102,7 @@ public class DigestRule implements EnforcerRule {
         String type = coordinates[3];
         String classifier = "null".equalsIgnoreCase(coordinates[4]) ? null : coordinates[4];
         String scope = coordinates[5];
-        String algorithm = coordinates[6];
-        String hash = coordinates[7];
+        String hash = coordinates[6];
 
         VersionRange versionRange = VersionRange.createFromVersion(version);
         Artifact artifact = artifactFactory.createDependencyArtifact(groupId, artifactId, versionRange, type, classifier, scope);
@@ -114,7 +114,7 @@ public class DigestRule implements EnforcerRule {
           throw new EnforcerRuleException("Failing due to artifact not found", e);
         }
 
-        String actual = digest(artifact.getFile(), algorithm);
+        String actual = digest(artifact.getFile());
         if (!actual.equals(hash)) {
           log.error("*** CRITICAL FAILURE *** Artifact does not match. Possible side-chain attack. Expected='" + hash + "' Actual='" + actual + "'");
           failed = true;
@@ -146,7 +146,7 @@ public class DigestRule implements EnforcerRule {
 
     List<String> whitelist = new ArrayList<String>();
 
-    for (Artifact artifact : project.getDependencyArtifacts()) {
+    for (Artifact artifact : project.getArtifacts()) {
 
       String artifactUrn = String.format("%s:%s:%s:%s:%s:%s",
         artifact.getGroupId(),
@@ -159,47 +159,37 @@ public class DigestRule implements EnforcerRule {
 
       log.debug("Examining artifact URN: " + artifactUrn);
 
-      // Read in the SHA1 signature file (if it exists)
+      // Read in the signature file (if it exists)
       File sha1File = new File(artifact.getFile().getAbsoluteFile() + ".sha1");
-      File md5File = new File(artifact.getFile().getAbsoluteFile() + ".md5");
+
+      // Generate expectations
       String sha1Expected = null;
       if (sha1File.exists()) {
-        sha1Expected = FileUtils.fileRead(sha1File).trim();
+        // SHA1 is 40 characters in hex
+        sha1Expected = FileUtils.fileRead(sha1File).substring(0,40);
         log.debug("Found SHA1:" + sha1Expected);
       }
-      String md5Expected = null;
-      if (md5File.exists()) {
-        md5Expected = FileUtils.fileRead(md5File).trim();
-        log.debug("Found MD5:" + md5Expected);
-      }
 
-      // Check the reality
-      String sha1Actual = digest(artifact.getFile(), "sha1");
-      String md5Actual = digest(artifact.getFile(), "md5");
+      // Generate actual
+      String sha1Actual = digest(artifact.getFile());
 
+      // Check expectations against actual
+      // SHA1
       if (sha1Expected != null) {
         if (!sha1Expected.equals(sha1Actual)) {
           log.error("Artifact " + artifactUrn + " FAILED SHA1 verification. Expected='" + sha1Expected + "' Actual='" + sha1Actual + "'");
         } else {
-          log.info("Artifact " + artifactUrn + " PASSED SHA1 verification.");
-          whitelist.add(artifactUrn + ":sha1:" + sha1Actual);
+          log.debug("Artifact " + artifactUrn + " PASSED SHA1 verification.");
+          whitelist.add(artifactUrn + ":" + sha1Actual);
         }
       } else {
-        log.warn("Artifact " + artifactUrn + " UNVERIFIED SHA1 verification (missing in repo).");
-      }
-
-      if (md5Expected != null) {
-        if (!md5Expected.equals(md5Actual)) {
-          log.error("Artifact " + artifactUrn + " FAILED MD5 verification. Expected='" + md5Expected + "' Actual='" + md5Actual + "'");
-        } else {
-          log.info("Artifact " + artifactUrn + " PASSED MD5 verification.");
-          whitelist.add(artifactUrn + ":md5:" + md5Actual);
-        }
-      } else {
-        log.warn("Artifact " + artifactUrn + " UNVERIFIED MD5 verification (missing in repo).");
+        log.warn("Artifact " + artifactUrn + " UNVERIFIED SHA1 (missing in repo).");
       }
 
     }
+
+    // Provide the list in a natural order
+    Collections.sort(whitelist);
 
     log.info("List of verified artifacts. If you are confident in the integrity of your repository you can use the list below:");
     log.info("<urns>");
@@ -211,16 +201,15 @@ public class DigestRule implements EnforcerRule {
 
   /**
    * @param file The file to digest
-   * @param algo The algorithm to use (e.g. "sha1", "md5")
    *
    * @return The hex version of the digest
    *
    * @throws EnforcerRuleException If something goes wrong
    */
-  private String digest(File file, String algo) throws EnforcerRuleException {
+  private String digest(File file) throws EnforcerRuleException {
     try {
       // Create a fresh digest every time
-      MessageDigest md = MessageDigest.getInstance(algo);
+      MessageDigest md = MessageDigest.getInstance("SHA-1");
 
       // Wrap a digest around the file input stream
       FileInputStream fis = new FileInputStream(file);

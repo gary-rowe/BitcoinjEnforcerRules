@@ -29,15 +29,21 @@
               <rules>
                 <digestRule implementation="com.google.bitcoinj.enforcer.DigestRule">
                   <!-- List of required hashes -->
-                  <!-- Format is URN of groupId:artifactId:version:type:classifier:scope:algorithm:hash -->
+                  <!-- Format is URN of groupId:artifactId:version:type:classifier:scope:hash -->
                   <!-- classifier is "null" if not present -->
                   <!-- algorithm is "sha1" or "md5" with "sha1" preferred -->
                   <urns>
-                    <urn>
-                      org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile:sha1:d726ceb2dcc711ef066cc639c12d856128ea1ef1
-                    </urn>
-                  </urns>
-                  <buildSnapshot>true</buildSnapshot>
+                    <urn>antlr:antlr:2.7.7:jar:null:compile:83cd2cd674a217ade95a4bb83a8a14f351f48bd0</urn>
+                    <urn>dom4j:dom4j:1.6.1:jar:null:compile:5d3ccc056b6f056dbf0dddfdf43894b9065a8f94</urn>
+                    <urn>org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile:d726ceb2dcc711ef066cc639c12d856128ea1ef1</urn>
+                    <urn>org.hibernate.common:hibernate-commons-annotations:4.0.1.Final:jar:null:compile:78bcf608d997d0529be2f4f781fdc89e801c9e88</urn>
+                    <urn>org.hibernate.javax.persistence:hibernate-jpa-2.0-api:1.0.1.Final:jar:null:compile:3306a165afa81938fc3d8a0948e891de9f6b192b</urn>
+                    <urn>org.hibernate:hibernate-core:4.1.8.Final:jar:null:compile:82b420eaf9f34f94ed5295454b068e62a9a58320</urn>
+                    <urn>org.hibernate:hibernate-entitymanager:4.1.8.Final:jar:null:compile:70a29cc959862b975647f9a03145274afb15fc3a</urn>
+                    <urn>org.javassist:javassist:3.15.0-GA:jar:null:compile:79907309ca4bb4e5e51d4086cc4179b2611358d7</urn>
+                    <urn>org.jboss.logging:jboss-logging:3.1.0.GA:jar:null:compile:c71f2856e7b60efe485db39b37a31811e6c84365</urn>
+                    <urn>org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:1.0.0.Final:jar:null:compile:2ab6236535e085d86f37fd97ddfdd35c88c1a419</urn>
+                  </urns>                                                                                                                                                                                                                                                                                                            <buildSnapshot>true</buildSnapshot>
                 </digestRule>
               </rules>
             </configuration>
@@ -63,11 +69,18 @@
 
   <dependencies>
 
-    <!-- Provide an example artifact -->
+    <!-- BouncyCastle is self-contained -->
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15</artifactId>
       <version>1.46</version>
+    </dependency>
+
+    <!-- Hibernate has several layers of transitive dependencies -->
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-entitymanager</artifactId>
+      <version>4.1.8.Final</version>
     </dependency>
 
   </dependencies>

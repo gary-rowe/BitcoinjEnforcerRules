@@ -17,10 +17,18 @@ the signing key for Maven Central is compromised.
 
 How would you detect that in your Maven build?
 
-You may think that the SHA1 and MD5 signatures would protect you, but in the event of a successful attack against
+You may think that the SHA1 signature would protect you, but in the event of a successful attack against
 Maven Central (or a mirror) they would match the digest of the downloaded artifact. In the absence of a controlled whitelist of
 permitted libraries there is little that can be done within the Maven environment to protect yourself against this kind
 of side-chain attack vector.
+
+## Why only SHA1?
+
+It should be noted that this plugin only uses the SHA1 algorithm for digest checking. [MD5 has been cryptographically
+broken](http://en.wikipedia.org/wiki/MD5) for a long time so is considered unsuitable for new projects. For the record,
+SHA1 is also broken, but not to the same degree and is the only alternative supported within the Maven system. This helps
+reduce the chance that an expert could manipulate the contents of the JAR to yield the same digest value whilst still
+containing the malicious code.
 
 ## A local whitelist
 
@@ -48,11 +56,10 @@ git repository when including it into your project.
             <rules>
               <digestRule implementation="com.google.bitcoinj.enforcer.DigestRule">
                 <!-- List of required hashes -->
-                <!-- Format is URN of groupId:artifactId:version:type:classifier:scope:algorithm:hash -->
+                <!-- Format is URN of groupId:artifactId:version:type:classifier:scope:hash -->
                 <!-- classifier is "null" if not present -->
-                <!-- algorithm is "sha1" or "md5" with "sha1" preferred -->
                 <urns>
-                    <urn>org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile:sha1:d726ceb2dcc711ef066cc639c12d856128ea1ef1</urn>
+                    <urn>org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile:d726ceb2dcc711ef066cc639c12d856128ea1ef1</urn>
                 </urns>
 
                 <!-- Set this to true to build a whitelist for your project after verification -->
@@ -87,7 +94,8 @@ git repository when including it into your project.
 ## How to use it
 
 For maximum effect, the rules should be triggered during the `verify` phase so that all the dependencies that could affect
-the build will have been pulled in.
+the build will have been pulled in. This has the useful side effect that as a developer you're not continuously checking
+yourself for every build - only when you're about to perform an `install` or `deploy`.
 
 You may want to grep/find on a case-sensitive match for "URN" to find the verification messages.
 
@@ -100,3 +108,10 @@ mvn clean install
 The reactor will first build the Bitcoinj Enforcer Rules and then go on to build another artifact that depends on them
 working (the Rule Tester project). This second project demonstrates how you would include Bitcoinj Enforcer Rules in
  your projects.
+
+## Building the whitelist automatically for large projects
+
+Clearly trying to manually create the list of URNs would be a painful process, particularly in a large project with many
+layers of transitive dependencies to explore. Fortunately, the `buildSnapshot` flag will cause the plugin to examine all
+the resolved dependencies within your project and build a list of URNs that you can copy-paste (with caution) into your build.
+

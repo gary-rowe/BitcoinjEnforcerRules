@@ -12,7 +12,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>bitcoinj-com.google.bitcoinj.enforcer-rules</artifactId>
+  <artifactId>bitcoinj-enforcer-rules</artifactId>
 
   <name>Bitcoinj Enforcer Rules</name>
   <description>A collection of rules for the Maven Enforcer Plugin that protect against attacks on the build process.</description>

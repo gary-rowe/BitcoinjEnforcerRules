@@ -52,7 +52,7 @@
         <dependencies>
           <dependency>
             <groupId>com.google.bitcoinj</groupId>
-            <artifactId>bitcoinj-com.google.bitcoinj.enforcer-rules</artifactId>
+            <artifactId>bitcoinj-enforcer-rules</artifactId>
             <version>0.0.1-SNAPSHOT</version>
           </dependency>
         </dependencies>

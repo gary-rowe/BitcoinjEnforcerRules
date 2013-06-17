@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.google.bitcoinj</groupId>
+    <groupId>uk.co.froot.bitcoinj.enforcer</groupId>
     <artifactId>bitcoinj-enforcer-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
@@ -18,6 +18,8 @@
 
   <build>
     <plugins>
+
+      <!-- Use the Bitcoinj Enforcer Rules to verify build integrity -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -25,13 +27,20 @@
         <executions>
           <execution>
             <id>enforce</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
             <configuration>
               <rules>
-                <digestRule implementation="com.google.bitcoinj.enforcer.DigestRule">
+                <digestRule implementation="uk.co.froot.bitcoinj.enforcer.DigestRule">
+
+                  <!-- Create a snapshot  -->
+                  <buildSnapshot>true</buildSnapshot>
+
                   <!-- List of required hashes -->
                   <!-- Format is URN of groupId:artifactId:version:type:classifier:scope:hash -->
                   <!-- classifier is "null" if not present -->
-                  <!-- algorithm is "sha1" or "md5" with "sha1" preferred -->
                   <urns>
                     <urn>antlr:antlr:2.7.7:jar:null:compile:83cd2cd674a217ade95a4bb83a8a14f351f48bd0</urn>
                     <urn>dom4j:dom4j:1.6.1:jar:null:compile:5d3ccc056b6f056dbf0dddfdf43894b9065a8f94</urn>
@@ -43,21 +52,18 @@
                     <urn>org.javassist:javassist:3.15.0-GA:jar:null:compile:79907309ca4bb4e5e51d4086cc4179b2611358d7</urn>
                     <urn>org.jboss.logging:jboss-logging:3.1.0.GA:jar:null:compile:c71f2856e7b60efe485db39b37a31811e6c84365</urn>
                     <urn>org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:1.0.0.Final:jar:null:compile:2ab6236535e085d86f37fd97ddfdd35c88c1a419</urn>
-                  </urns>                                                                                                                                                                                                                                                                                                            <buildSnapshot>true</buildSnapshot>
+                  </urns>
+
                 </digestRule>
               </rules>
             </configuration>
-            <phase>verify</phase>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
           </execution>
         </executions>
 
         <!-- Ensure we download the enforcer rules -->
         <dependencies>
           <dependency>
-            <groupId>com.google.bitcoinj</groupId>
+            <groupId>uk.co.froot.bitcoinj.enforcer</groupId>
             <artifactId>bitcoinj-enforcer-rules</artifactId>
             <version>0.0.1-SNAPSHOT</version>
           </dependency>

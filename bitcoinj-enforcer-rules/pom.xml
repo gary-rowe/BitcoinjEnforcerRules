@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.google.bitcoinj</groupId>
+    <groupId>uk.co.froot.bitcoinj.enforcer</groupId>
     <artifactId>bitcoinj-enforcer-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>

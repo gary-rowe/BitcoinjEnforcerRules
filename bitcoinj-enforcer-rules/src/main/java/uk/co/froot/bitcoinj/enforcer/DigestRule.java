@@ -1,4 +1,4 @@
-package com.google.bitcoinj.enforcer;
+package uk.co.froot.bitcoinj.enforcer;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
@@ -42,6 +42,7 @@ public class DigestRule implements EnforcerRule {
   private String[] urns = null;
 
   private boolean buildSnapshot = false;
+  private MessageDigest messageDigest = null;
 
   public String getCacheId() {
     return "id"; // This is not cacheable
@@ -62,31 +63,62 @@ public class DigestRule implements EnforcerRule {
 
     log.info("Applying DigestRule");
 
+    try {
+
+      // Initialise the MessageDigest for SHA1
+      messageDigest = MessageDigest.getInstance("SHA-1");
+
+      MavenProject mavenProject = (MavenProject) helper.evaluate("${project}");
+
+      // Build the snapshot first
+      if (buildSnapshot) {
+        buildSnapshot(mavenProject, log);
+      }
+
+      // Check for missing URNs (OK if we're just making a snapshot)
+      if (urns == null && !buildSnapshot) {
+        throw new EnforcerRuleException("Failing because there are no URNs in the <configuration> section. See the README for help.");
+      }
+
+      // Must be OK to verify
+      verifyDependencies(mavenProject, log, helper);
+
+    } catch (IOException e) {
+      throw new EnforcerRuleException("Unable to read file: " + e.getLocalizedMessage(), e);
+    } catch (ExpressionEvaluationException e) {
+      throw new EnforcerRuleException("Unable to lookup an expression: " + e.getLocalizedMessage(), e);
+    } catch (NoSuchAlgorithmException e) {
+      throw new EnforcerRuleException("Unable to initialise MessageDigest: " + e.getLocalizedMessage(), e);
+    }
+  }
+
+  /**
+   * @param mavenProject The Maven project
+   * @param log          The Maven log
+   * @param helper       The Maven helper
+   *
+   * @throws EnforcerRuleException If something goes wrong
+   */
+  private void verifyDependencies(MavenProject mavenProject, Log log, EnforcerRuleHelper helper) throws EnforcerRuleException {
+
+    log.info("Verifying dependencies");
+
     boolean failed = false;
 
     try {
+
       // get the various expressions out of the helper.
-      MavenProject project = (MavenProject) helper.evaluate("${project}");
 
       ArtifactRepository localRepository;
 
       // Due to backwards compatibility issues the deprecated interface must be used here
       ArtifactFactory artifactFactory;
       ArtifactResolver resolver;
-      try {
-        localRepository = (ArtifactRepository) helper.evaluate("${localRepository}");
+      localRepository = (ArtifactRepository) helper.evaluate("${localRepository}");
 
-        artifactFactory = (ArtifactFactory) helper.getComponent(ArtifactFactory.class);
+      artifactFactory = (ArtifactFactory) helper.getComponent(ArtifactFactory.class);
 
-        resolver = (ArtifactResolver) helper.getComponent(ArtifactResolver.class);
-
-      } catch (ComponentLookupException e) {
-        throw new EnforcerRuleException("Failing because a component lookup failed", e);
-      }
-
-      if (urns == null) {
-        throw new EnforcerRuleException("Failing because there are no URNs in the <configuration> section. See the README for help.");
-      }
+      resolver = (ArtifactResolver) helper.getComponent(ArtifactResolver.class);
 
       for (String urn : urns) {
         log.info("Verifying URN: " + urn);
@@ -106,17 +138,12 @@ public class DigestRule implements EnforcerRule {
 
         VersionRange versionRange = VersionRange.createFromVersion(version);
         Artifact artifact = artifactFactory.createDependencyArtifact(groupId, artifactId, versionRange, type, classifier, scope);
-        try {
-          resolver.resolve(artifact, project.getRemoteArtifactRepositories(), localRepository);
-        } catch (ArtifactResolutionException e) {
-          throw new EnforcerRuleException("Failing due to artifact resolution ", e);
-        } catch (ArtifactNotFoundException e) {
-          throw new EnforcerRuleException("Failing due to artifact not found", e);
-        }
+
+        resolver.resolve(artifact, mavenProject.getRemoteArtifactRepositories(), localRepository);
 
         String actual = digest(artifact.getFile());
         if (!actual.equals(hash)) {
-          log.error("*** CRITICAL FAILURE *** Artifact does not match. Possible side-chain attack. Expected='" + hash + "' Actual='" + actual + "'");
+          log.error("*** CRITICAL FAILURE *** Artifact does not match. Possible dependency-chain attack. Expected='" + hash + "' Actual='" + actual + "'");
           failed = true;
         }
       }
@@ -125,23 +152,28 @@ public class DigestRule implements EnforcerRule {
         throw new EnforcerRuleException("At least one artifact has not met expectations.");
       }
 
-      if (buildSnapshot) buildSnapshot(log, project);
-
+      // Translate the multitude of exceptions
     } catch (ExpressionEvaluationException e) {
-      throw new EnforcerRuleException("Unable to lookup an expression " + e.getLocalizedMessage(), e);
-    } catch (IOException e) {
-      throw new EnforcerRuleException("Unable to read file " + e.getLocalizedMessage(), e);
+      throw new EnforcerRuleException("Unable to lookup an expression: " + e.getLocalizedMessage(), e);
+    } catch (ComponentLookupException e) {
+      throw new EnforcerRuleException("Failing because a component lookup failed: " + e.getLocalizedMessage(), e);
+    } catch (ArtifactResolutionException e) {
+      throw new EnforcerRuleException("Failing due to artifact resolution: " + e.getLocalizedMessage(), e);
+    } catch (ArtifactNotFoundException e) {
+      throw new EnforcerRuleException("Failing due to artifact not found: " + e.getLocalizedMessage(), e);
     }
+
   }
 
   /**
-   * @param log     The project log
    * @param project The project
+   * @param log     The project log
    *
    * @throws IOException           If something goes wrong
    * @throws EnforcerRuleException If something goes wrong
    */
-  private void buildSnapshot(Log log, MavenProject project) throws IOException, EnforcerRuleException {
+  private void buildSnapshot(MavenProject project, Log log) throws IOException, EnforcerRuleException {
+
     log.info("Building snapshot whitelist of all current artifacts");
 
     List<String> whitelist = new ArrayList<String>();
@@ -166,7 +198,7 @@ public class DigestRule implements EnforcerRule {
       String sha1Expected = null;
       if (sha1File.exists()) {
         // SHA1 is 40 characters in hex
-        sha1Expected = FileUtils.fileRead(sha1File).substring(0,40);
+        sha1Expected = FileUtils.fileRead(sha1File).substring(0, 40);
         log.debug("Found SHA1:" + sha1Expected);
       }
 
@@ -208,12 +240,12 @@ public class DigestRule implements EnforcerRule {
    */
   private String digest(File file) throws EnforcerRuleException {
     try {
-      // Create a fresh digest every time
-      MessageDigest md = MessageDigest.getInstance("SHA-1");
+      // Reset the digest to avoid initialisation delays
+      messageDigest.reset();
 
-      // Wrap a digest around the file input stream
+      // Wrap the digest around the file input stream
       FileInputStream fis = new FileInputStream(file);
-      DigestInputStream dis = new DigestInputStream(fis, md);
+      DigestInputStream dis = new DigestInputStream(fis, messageDigest);
 
       // Read fully to get digest
       while (dis.read() != -1) {
@@ -222,12 +254,10 @@ public class DigestRule implements EnforcerRule {
       // Clean up resources
       dis.close();
       fis.close();
-      byte[] digest = md.digest();
+      byte[] digest = messageDigest.digest();
 
       return byteToHex(digest);
 
-    } catch (NoSuchAlgorithmException e) {
-      throw new EnforcerRuleException("Unable to digest " + e.getLocalizedMessage(), e);
     } catch (FileNotFoundException e) {
       throw new EnforcerRuleException("Unable to digest " + e.getLocalizedMessage(), e);
     } catch (IOException e) {
@@ -250,4 +280,10 @@ public class DigestRule implements EnforcerRule {
     return result;
   }
 
+  /**
+   * @param buildSnapshot True if a snapshot of the current dependencies is required
+   */
+  public void setBuildSnapshot(boolean buildSnapshot) {
+    this.buildSnapshot = buildSnapshot;
+  }
 }

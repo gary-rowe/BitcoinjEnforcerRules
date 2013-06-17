@@ -22,18 +22,6 @@ Maven Central (or a mirror) they would match the digest of the downloaded artifa
 permitted libraries there is little that can be done within the Maven environment to protect yourself against this kind
 of dependency-chain attack vector.
 
-As an aside, using git is a very effective way to ensure that your code has not been corrupted en-route. The fingerprint
-of the current commit is calculated based on the hashes of all previous history so that retroactive forgery is not
-feasible.
-
-### Why only SHA1?
-
-It should be noted that this plugin only uses the SHA1 algorithm for digest checking. [MD5 has been cryptographically
-broken](http://en.wikipedia.org/wiki/MD5) for a long time so is considered unsuitable for new projects. For the record,
-SHA1 is also broken, but not to the same degree and is the only alternative supported within the Maven system. This helps
-reduce the chance that an expert could manipulate the contents of the JAR to yield the same digest value whilst still
-containing the malicious code.
-
 ### A local whitelist
 
 The Bitcoinj Enforcer Rules work with the [Maven Enforcer Plugin](http://maven.apache.org/enforcer/maven-enforcer-plugin/)
@@ -109,7 +97,7 @@ when including it into your project.
 
 ```
 
-## How to use it
+### How to use it
 
 For maximum effect, the rules should be triggered during the `verify` phase so that all the dependencies that could affect
 the build will have been pulled in. This has the useful side effect that as a developer you're not continuously checking
@@ -125,11 +113,37 @@ mvn clean install
 
 The reactor will first build the Bitcoinj Enforcer Rules and then go on to build another artifact that depends on them
 working (the Rule Tester project). This second project demonstrates how you would include Bitcoinj Enforcer Rules in
- your projects.
+your projects.
 
-## Building the whitelist automatically for large projects
+### Building the whitelist automatically
 
 Clearly trying to manually create the list of URNs would be a painful process, particularly in a large project with many
 layers of transitive dependencies to explore. Fortunately, the `buildSnapshot` flag will cause the plugin to examine all
 the resolved dependencies within your project and build a list of URNs that you can copy-paste (with caution) into your build.
 
+### Does it work with third-party build systems?
+
+Yes. One of the design goals was to allow Bitcoinj to be deployed into Maven Central with sufficient support that any
+compromise to either it or its supporting libraries could be detected. Now your projects that include Bitcoinj will be
+able to build through Travis or deploy through Heroku (once Bitcoinj arrives in Maven Central).
+
+** Don't include Bitcoinj in your project without these rules or you risk losing your private keys! **
+
+### Will developers provide these hashes?
+
+It is hoped that as more developers start to take an interest in the possibility of a dependency-chain attack that they
+will begin to provide verifiable `<urn>` entries for inclusion in this plugin. Often these will be present within the
+project itself since they will be used to build it and so can be easily lifted into your own POM files.
+
+Many developers are choosing git as their preferred version control system. As part of their supporting documentation
+they will probably provide the SHA1 hashes of their final artifacts for verification through git. This introduces a
+very secure delivery mechanism because the fingerprint of the current commit is calculated based on the hashes of all
+previous history so that retroactive forgery is not feasible.
+
+### Why only SHA1?
+
+It should be noted that this plugin only uses the SHA1 algorithm for digest checking. [MD5 has been cryptographically
+broken](http://en.wikipedia.org/wiki/MD5) for a long time so is considered unsuitable for new projects. For the record,
+SHA1 is also broken, but not to the same degree and is the only alternative supported within the Maven system. This helps
+reduce the chance that an expert could manipulate the contents of the JAR to yield the same digest value whilst still
+containing the malicious code.

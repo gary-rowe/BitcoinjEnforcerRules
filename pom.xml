@@ -12,7 +12,7 @@
   <groupId>uk.co.froot.maven.enforcer</groupId>
   <artifactId>digest-enforcer-parent</artifactId>
   <packaging>pom</packaging>
-  <version>0.0.1</version>
+  <version>0.0.2-SNAPSHOT</version>
 
   <name>Digest Enforcer Rules Parent</name>
   <description>The parent providing a reactor build to allow a unified development environment.</description>
@@ -70,7 +70,7 @@
     <connection>scm:git:git@github.com:gary-rowe/BitcoinjEnforcerRules.git</connection>
     <developerConnection>scm:git:git@github.com:gary-rowe/BitcoinjEnforcerRules.git</developerConnection>
     <url>git@github.com:gary-rowe/BitcoinjEnforcerRules.git</url>
-    <tag>digest-enforcer-parent-0.0.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <ciManagement>

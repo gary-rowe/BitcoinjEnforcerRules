@@ -13,8 +13,8 @@
 
   <artifactId>rule-tester</artifactId>
 
-  <name>Bitcoinj Rule Tester</name>
-  <description>A simple build that exercises the various Bitcoinj rules.</description>
+  <name>Digest Rule Tester</name>
+  <description>An example build that demonstrates the configuration.</description>
 
   <build>
     <plugins>

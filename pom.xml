@@ -4,16 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>uk.co.froot.bitcoinj.enforcer</groupId>
-  <artifactId>bitcoinj-enforcer-parent</artifactId>
+  <groupId>uk.co.froot.maven.enforcer</groupId>
+  <artifactId>digest-enforcer-parent</artifactId>
   <packaging>pom</packaging>
   <version>0.0.1-SNAPSHOT</version>
 
-  <name>Bitcoinj Enforcer Rules Parent</name>
+  <name>Digest Enforcer Rules Parent</name>
   <description>The parent providing a reactor build to allow a unified development environment.</description>
 
   <modules>
-    <module>bitcoinj-enforcer-rules</module>
+    <module>digest-enforcer-rules</module>
     <module>rule-tester</module>
   </modules>
 
@@ -57,7 +57,7 @@
       <name>Nexus Release Repository</name>
       <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
-    <downloadUrl>https://oss.sonatype.org/content/groups/public/uk/co/froot/bitcoinj/enforcer</downloadUrl>
+    <downloadUrl>https://oss.sonatype.org/content/groups/public/uk/co/froot/maven/enforcer</downloadUrl>
   </distributionManagement>
 
   <scm>

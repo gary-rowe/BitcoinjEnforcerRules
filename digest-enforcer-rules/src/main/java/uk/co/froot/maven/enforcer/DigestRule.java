@@ -1,4 +1,4 @@
-package uk.co.froot.bitcoinj.enforcer;
+package uk.co.froot.maven.enforcer;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
@@ -39,10 +39,17 @@ import java.util.List;
  */
 public class DigestRule implements EnforcerRule {
 
+  // Injected by Enforcer plugin
   private String[] urns = null;
-
   private boolean buildSnapshot = false;
+
+  // Various common references provided by Enforcer Helper
   private MessageDigest messageDigest = null;
+  private ArtifactRepository localRepository = null;
+  private MavenProject mavenProject = null;
+  private ArtifactFactory artifactFactory = null;
+  private ArtifactResolver resolver = null;
+  private Log log = null;
 
   public String getCacheId() {
     return "id"; // This is not cacheable
@@ -59,7 +66,7 @@ public class DigestRule implements EnforcerRule {
   @SuppressWarnings("deprecation")
   public void execute(EnforcerRuleHelper helper) throws EnforcerRuleException {
 
-    Log log = helper.getLog();
+    log = helper.getLog();
 
     log.info("Applying DigestRule");
 
@@ -68,7 +75,16 @@ public class DigestRule implements EnforcerRule {
       // Initialise the MessageDigest for SHA1
       messageDigest = MessageDigest.getInstance("SHA-1");
 
-      MavenProject mavenProject = (MavenProject) helper.evaluate("${project}");
+      mavenProject = (MavenProject) helper.evaluate("${project}");
+
+      // Get the local repository
+      localRepository = (ArtifactRepository) helper.evaluate("${localRepository}");
+
+      // Due to backwards compatibility issues the deprecated interface must be used here
+      artifactFactory = (ArtifactFactory) helper.getComponent(ArtifactFactory.class);
+
+      // Get the artifact resolver
+      resolver = (ArtifactResolver) helper.getComponent(ArtifactResolver.class);
 
       // Build the snapshot first
       if (buildSnapshot) {
@@ -81,7 +97,7 @@ public class DigestRule implements EnforcerRule {
       }
 
       // Must be OK to verify
-      verifyDependencies(mavenProject, log, helper);
+      verifyDependencies();
 
     } catch (IOException e) {
       throw new EnforcerRuleException("Unable to read file: " + e.getLocalizedMessage(), e);
@@ -89,80 +105,9 @@ public class DigestRule implements EnforcerRule {
       throw new EnforcerRuleException("Unable to lookup an expression: " + e.getLocalizedMessage(), e);
     } catch (NoSuchAlgorithmException e) {
       throw new EnforcerRuleException("Unable to initialise MessageDigest: " + e.getLocalizedMessage(), e);
-    }
-  }
-
-  /**
-   * @param mavenProject The Maven project
-   * @param log          The Maven log
-   * @param helper       The Maven helper
-   *
-   * @throws EnforcerRuleException If something goes wrong
-   */
-  private void verifyDependencies(MavenProject mavenProject, Log log, EnforcerRuleHelper helper) throws EnforcerRuleException {
-
-    log.info("Verifying dependencies");
-
-    boolean failed = false;
-
-    try {
-
-      // get the various expressions out of the helper.
-
-      ArtifactRepository localRepository;
-
-      // Due to backwards compatibility issues the deprecated interface must be used here
-      ArtifactFactory artifactFactory;
-      ArtifactResolver resolver;
-      localRepository = (ArtifactRepository) helper.evaluate("${localRepository}");
-
-      artifactFactory = (ArtifactFactory) helper.getComponent(ArtifactFactory.class);
-
-      resolver = (ArtifactResolver) helper.getComponent(ArtifactResolver.class);
-
-      for (String urn : urns) {
-        log.info("Verifying URN: " + urn);
-        // Decode it into artifact co-ordinates
-        String[] coordinates = urn.split(":");
-        if (coordinates.length != 7) {
-          throw new EnforcerRuleException("Failing because URN '" + urn + "' is not in format 'groupId:artifactId:version:type:classifier:scope:hash'");
-        }
-
-        String groupId = coordinates[0];
-        String artifactId = coordinates[1];
-        String version = coordinates[2];
-        String type = coordinates[3];
-        String classifier = "null".equalsIgnoreCase(coordinates[4]) ? null : coordinates[4];
-        String scope = coordinates[5];
-        String hash = coordinates[6];
-
-        VersionRange versionRange = VersionRange.createFromVersion(version);
-        Artifact artifact = artifactFactory.createDependencyArtifact(groupId, artifactId, versionRange, type, classifier, scope);
-
-        resolver.resolve(artifact, mavenProject.getRemoteArtifactRepositories(), localRepository);
-
-        String actual = digest(artifact.getFile());
-        if (!actual.equals(hash)) {
-          log.error("*** CRITICAL FAILURE *** Artifact does not match. Possible dependency-chain attack. Expected='" + hash + "' Actual='" + actual + "'");
-          failed = true;
-        }
-      }
-
-      if (failed) {
-        throw new EnforcerRuleException("At least one artifact has not met expectations.");
-      }
-
-      // Translate the multitude of exceptions
-    } catch (ExpressionEvaluationException e) {
-      throw new EnforcerRuleException("Unable to lookup an expression: " + e.getLocalizedMessage(), e);
     } catch (ComponentLookupException e) {
-      throw new EnforcerRuleException("Failing because a component lookup failed: " + e.getLocalizedMessage(), e);
-    } catch (ArtifactResolutionException e) {
-      throw new EnforcerRuleException("Failing due to artifact resolution: " + e.getLocalizedMessage(), e);
-    } catch (ArtifactNotFoundException e) {
-      throw new EnforcerRuleException("Failing due to artifact not found: " + e.getLocalizedMessage(), e);
+      throw new EnforcerRuleException("Unable to look up a component: " + e.getLocalizedMessage(), e);
     }
-
   }
 
   /**
@@ -178,7 +123,12 @@ public class DigestRule implements EnforcerRule {
 
     List<String> whitelist = new ArrayList<String>();
 
-    for (Artifact artifact : project.getArtifacts()) {
+    List<Artifact> checklist = new ArrayList<Artifact>();
+    checklist.addAll(project.getArtifacts());
+    checklist.addAll(project.getPluginArtifacts());
+    checklist.addAll(project.getExtensionArtifacts());
+
+    for (Artifact artifact : checklist) {
 
       String artifactUrn = String.format("%s:%s:%s:%s:%s:%s",
         artifact.getGroupId(),
@@ -191,10 +141,23 @@ public class DigestRule implements EnforcerRule {
 
       log.debug("Examining artifact URN: " + artifactUrn);
 
-      // Read in the signature file (if it exists)
-      File sha1File = new File(artifact.getFile().getAbsoluteFile() + ".sha1");
+      resolveArtifact(artifact);
 
-      // Generate expectations
+      // Read in the signature file (if it exists)
+      File artifactFile = artifact.getFile();
+      if (artifactFile == null) {
+        log.error("Artifact " + artifactUrn + " UNVERIFIED (could not be resolved).");
+        continue;
+      }
+      if (!artifactFile.exists()) {
+        log.warn("Artifact " + artifactUrn + " UNVERIFIED (file missing in repo).");
+        continue;
+      }
+
+      // Reference the SHA1
+      File sha1File = new File(artifactFile.getAbsoluteFile() + ".sha1");
+
+      // Read the SHA1
       String sha1Expected = null;
       if (sha1File.exists()) {
         // SHA1 is 40 characters in hex
@@ -229,6 +192,68 @@ public class DigestRule implements EnforcerRule {
       log.info("  <urn>" + urn + "</urn>");
     }
     log.info("</urns>");
+  }
+
+  /**
+   * <p>Handles the process of verifying the dependencies listed</p>
+   *
+   * @throws EnforcerRuleException If something goes wrong
+   */
+  private void verifyDependencies() throws EnforcerRuleException {
+
+    log.info("Verifying dependencies");
+
+    boolean failed = false;
+
+    for (String urn : urns) {
+      log.info("Verifying URN: " + urn);
+      // Decode it into artifact co-ordinates
+      String[] coordinates = urn.split(":");
+      if (coordinates.length != 7) {
+        throw new EnforcerRuleException("Failing because URN '" + urn + "' is not in format 'groupId:artifactId:version:type:classifier:scope:hash'");
+      }
+
+      // Extract the artifact co-ordinates from the URN
+      String groupId = coordinates[0];
+      String artifactId = coordinates[1];
+      String version = coordinates[2];
+      String type = coordinates[3];
+      String classifier = "null".equalsIgnoreCase(coordinates[4]) ? null : coordinates[4];
+      String scope = coordinates[5];
+      String hash = coordinates[6];
+
+      VersionRange versionRange = VersionRange.createFromVersion(version);
+      Artifact artifact = artifactFactory.createDependencyArtifact(groupId, artifactId, versionRange, type, classifier, scope);
+
+      resolveArtifact(artifact);
+
+      // Check the SHA1
+      String actual = digest(artifact.getFile());
+      if (!actual.equals(hash)) {
+        log.error("*** CRITICAL FAILURE *** Artifact does not match. Possible dependency-chain attack. Expected='" + hash + "' Actual='" + actual + "'");
+        failed = true;
+      }
+    }
+
+    if (failed) {
+      throw new EnforcerRuleException("At least one artifact has not met expectations. You should manually verify the integrity of the affected artifacts against trusted sources.");
+    }
+
+  }
+
+  /**
+   *
+   * @param artifact The unresolved artifact
+   * @throws EnforcerRuleException If something goes wrong
+   */
+  private void resolveArtifact(Artifact artifact) throws EnforcerRuleException {
+    try {
+      resolver.resolve(artifact, mavenProject.getRemoteArtifactRepositories(), localRepository);
+    } catch (ArtifactResolutionException e) {
+      throw new EnforcerRuleException("Failing due to artifact resolution: " + e.getLocalizedMessage(), e);
+    } catch (ArtifactNotFoundException e) {
+      throw new EnforcerRuleException("Failing due to artifact not found: " + e.getLocalizedMessage(), e);
+    }
   }
 
   /**
@@ -280,10 +305,4 @@ public class DigestRule implements EnforcerRule {
     return result;
   }
 
-  /**
-   * @param buildSnapshot True if a snapshot of the current dependencies is required
-   */
-  public void setBuildSnapshot(boolean buildSnapshot) {
-    this.buildSnapshot = buildSnapshot;
-  }
 }

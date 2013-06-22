@@ -6,16 +6,16 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>uk.co.froot.bitcoinj.enforcer</groupId>
-    <artifactId>bitcoinj-enforcer-parent</artifactId>
+    <groupId>uk.co.froot.maven.enforcer</groupId>
+    <artifactId>digest-enforcer-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>bitcoinj-enforcer-rules</artifactId>
+  <artifactId>digest-enforcer-rules</artifactId>
 
-  <name>Bitcoinj Enforcer Rules</name>
-  <description>A collection of rules for the Maven Enforcer Plugin that protect against attacks on the build process.</description>
+  <name>Digest Enforcer Rules</name>
+  <description>A collection of rules for the Maven Enforcer Plugin that protect against dependency-chain attacks on the build process.</description>
 
   <properties>
     <api.version>1.2</api.version>
@@ -24,6 +24,7 @@
   </properties>
 
   <dependencies>
+    <!-- The Enforcer plugin API -->
     <dependency>
       <groupId>org.apache.maven.enforcer</groupId>
       <artifactId>enforcer-api</artifactId>
@@ -59,9 +60,6 @@
       <version>${maven.version}</version>
     </dependency>
 
-
   </dependencies>
 
-  <build>
-  </build>
 </project>

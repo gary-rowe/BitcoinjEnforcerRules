@@ -54,7 +54,7 @@ when including it into your project.
             </goals>
             <configuration>
               <rules>
-                <digestRule implementation="uk.co.froot.bitcoinj.enforcer.DigestRule">
+                <digestRule implementation="uk.co.froot.maven.enforcer.DigestRule">
 
                   <!-- Create a snapshot  -->
                   <buildSnapshot>true</buildSnapshot>
@@ -84,8 +84,8 @@ when including it into your project.
         <!-- Ensure we download the enforcer rules -->
         <dependencies>
           <dependency>
-            <groupId>uk.co.froot.bitcoinj.enforcer</groupId>
-            <artifactId>bitcoinj-enforcer-rules</artifactId>
+            <groupId>uk.co.froot.maven.enforcer</groupId>
+            <artifactId>digest-enforcer-rules</artifactId>
             <version>0.0.1-SNAPSHOT</version>
           </dependency>
         </dependencies>
@@ -127,7 +127,7 @@ Yes. One of the design goals was to allow Bitcoinj to be deployed into Maven Cen
 compromise to either it or its supporting libraries could be detected. Now your projects that include Bitcoinj will be
 able to build through Travis or deploy through Heroku (once Bitcoinj arrives in Maven Central).
 
-** Don't include Bitcoinj in your project without these rules or you risk losing your private keys! **
+**Don't include Bitcoinj in your project without these rules or you risk losing your private keys!**
 
 ### Will developers provide these hashes?
 

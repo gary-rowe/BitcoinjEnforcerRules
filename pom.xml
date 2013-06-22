@@ -116,10 +116,6 @@
                 </goals>
               </execution>
             </executions>
-            <configuration>
-              <keyname>59A81D7B</keyname>
-              <useAgent>true</useAgent>
-            </configuration>
           </plugin>
         </plugins>
       </build>

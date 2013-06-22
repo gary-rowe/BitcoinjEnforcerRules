@@ -116,6 +116,9 @@
                 </goals>
               </execution>
             </executions>
+            <configuration>
+              <keyname>g.rowe@froot.co.uk</keyname>
+            </configuration>
           </plugin>
         </plugins>
       </build>

@@ -143,6 +143,9 @@ Obviously, you can also compile this code yourself and obtain the same result.
 
 #### Release 0.0.1
 
+The text below is available in a raw format in the file [certificate-0.0.1.asc](https://raw.github.com/gary-rowe/BitcoinjEnforcerRules/master/certificate-0.0.1.asc).
+
+```
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
@@ -159,3 +162,4 @@ iEYEARECAAYFAlHGzAAACgkQIYO80lmoHXv4dgCg8Hj6T6p8UVmX68RfwyDgrR8j
 /zIAnjR57oBsqtML4XYx+ovj/QmgJDJg
 =papV
 -----END PGP SIGNATURE-----
+```

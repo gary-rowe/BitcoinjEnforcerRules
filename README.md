@@ -40,7 +40,7 @@ when including it into your project.
 <build>
   <plugins>
     ...
-      <!-- Use the Bitcoinj Enforcer Rules to verify build integrity -->
+      <!-- Use the Enforcer to verify build integrity -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -56,13 +56,14 @@ when including it into your project.
               <rules>
                 <digestRule implementation="uk.co.froot.maven.enforcer.DigestRule">
 
-                  <!-- Create a snapshot  -->
+                  <!-- Create a snapshot to build the list of URNs below -->
                   <buildSnapshot>true</buildSnapshot>
 
                   <!-- List of required hashes -->
                   <!-- Format is URN of groupId:artifactId:version:type:classifier:scope:hash -->
                   <!-- classifier is "null" if not present -->
                   <urns>
+
                     <urn>antlr:antlr:2.7.7:jar:null:compile:83cd2cd674a217ade95a4bb83a8a14f351f48bd0</urn>
                     <urn>dom4j:dom4j:1.6.1:jar:null:compile:5d3ccc056b6f056dbf0dddfdf43894b9065a8f94</urn>
                     <urn>org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile:d726ceb2dcc711ef066cc639c12d856128ea1ef1</urn>
@@ -73,6 +74,10 @@ when including it into your project.
                     <urn>org.javassist:javassist:3.15.0-GA:jar:null:compile:79907309ca4bb4e5e51d4086cc4179b2611358d7</urn>
                     <urn>org.jboss.logging:jboss-logging:3.1.0.GA:jar:null:compile:c71f2856e7b60efe485db39b37a31811e6c84365</urn>
                     <urn>org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:1.0.0.Final:jar:null:compile:2ab6236535e085d86f37fd97ddfdd35c88c1a419</urn>
+
+                    <!-- A check for the rules themselves -->
+                    <urn>uk.co.froot.maven.enforcer:digest-enforcer-rules:0.0.1:jar:null:runtime:16a9e04f3fe4bb143c42782d07d5faf65b32106f</urn>
+
                   </urns>
 
                 </digestRule>
@@ -86,7 +91,7 @@ when including it into your project.
           <dependency>
             <groupId>uk.co.froot.maven.enforcer</groupId>
             <artifactId>digest-enforcer-rules</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
           </dependency>
         </dependencies>
 
@@ -111,7 +116,7 @@ You can try it out on itself by building it within this reactor project:
 mvn clean install
 ```
 
-The reactor will first build the Bitcoinj Enforcer Rules and then go on to build another artifact that depends on them
+This reactor will first build the Bitcoinj Enforcer Rules and then go on to build another artifact that depends on them
 working (the Rule Tester project). This second project demonstrates how you would include Bitcoinj Enforcer Rules in
 your projects.
 
@@ -129,21 +134,28 @@ able to build through Travis or deploy through Heroku (once Bitcoinj arrives in 
 
 **Don't include Bitcoinj in your project without these rules or you risk losing your private keys!**
 
-### Will developers provide these hashes?
+### How do I check the checker?
 
-It is hoped that as more developers start to take an interest in the possibility of a dependency-chain attack that they
-will begin to provide verifiable `<urn>` entries for inclusion in this plugin. Often these will be present within the
-project itself since they will be used to build it and so can be easily lifted into your own POM files.
+Trust has to begin somewhere so I'm going to provide some signed declarations for each version. These can be validated
+against my public key [59A81D7B](http://pgp.mit.edu:11371/pks/lookup?op=get&search=0x2183BCD259A81D7B).
 
-Many developers are choosing git as their preferred version control system. As part of their supporting documentation
-they will probably provide the SHA1 hashes of their final artifacts for verification through git. This introduces a
-very secure delivery mechanism because the fingerprint of the current commit is calculated based on the hashes of all
-previous history so that retroactive forgery is not feasible.
+Obviously, you can also compile this code yourself and obtain the same result.
 
-### Why only SHA1?
+#### Release 0.0.1
 
-It should be noted that this plugin only uses the SHA1 algorithm for digest checking. [MD5 has been cryptographically
-broken](http://en.wikipedia.org/wiki/MD5) for a long time so is considered unsuitable for new projects. For the record,
-SHA1 is also broken, but not to the same degree and is the only alternative supported within the Maven system. This helps
-reduce the chance that an expert could manipulate the contents of the JAR to yield the same digest value whilst still
-containing the malicious code.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+I, Gary Rowe, hereby certify that this entry in the DigestRule configuration
+
+<urn>uk.co.froot.maven.enforcer:digest-enforcer-rules:0.0.1:jar:null:runtime:16a9e04f3fe4bb143c42782d07d5faf65b32106f</urn>
+
+will validate against the entry that is in Maven Central for version 0.0.1.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG/MacGPG2 v2.0.17 (Darwin)
+Comment: GPGTools - http://gpgtools.org
+
+iEYEARECAAYFAlHGzAAACgkQIYO80lmoHXv4dgCg8Hj6T6p8UVmX68RfwyDgrR8j
+/zIAnjR57oBsqtML4XYx+ovj/QmgJDJg
+=papV
+-----END PGP SIGNATURE-----

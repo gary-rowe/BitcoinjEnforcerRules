@@ -139,7 +139,18 @@ able to build through Travis or deploy through Heroku (once Bitcoinj arrives in 
 Trust has to begin somewhere so I'm going to provide some signed declarations for each version. These can be validated
 against my public key [59A81D7B](http://pgp.mit.edu:11371/pks/lookup?op=get&search=0x2183BCD259A81D7B).
 
-Obviously, you can also compile this code yourself and obtain the same result.
+### Known issues
+
+#### Maven 2.2.1 incompatibility
+
+If you get this message during your build:
+
+```
+java.lang.ClassCastException: org.codehaus.plexus.component.configurator.BasicComponentConfigurator cannot be cast to org.codehaus.plexus.component.configurator.ComponentConfigurator
+```
+
+then it is likely that you are building with Maven 2.2.1. You could spend a lot of time fiddling with the compiler and plugin
+settings, but overall it would be easier to just migrate to Maven 3+.
 
 #### Release 0.0.1
 

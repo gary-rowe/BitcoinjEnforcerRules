@@ -2,9 +2,9 @@ package uk.co.froot.maven.enforcer;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
+import org.apache.maven.artifact.factory.DefaultArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
-import org.apache.maven.artifact.resolver.ArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.enforcer.rule.api.EnforcerRule;
@@ -35,7 +35,7 @@ import java.util.List;
  * </ul>
  *
  * @since 0.0.1
- *         
+ *  
  */
 public class DigestRule implements EnforcerRule {
 
@@ -47,7 +47,7 @@ public class DigestRule implements EnforcerRule {
   private MessageDigest messageDigest = null;
   private ArtifactRepository localRepository = null;
   private MavenProject mavenProject = null;
-  private ArtifactFactory artifactFactory = null;
+  private DefaultArtifactFactory artifactFactory = null;
   private ArtifactResolver resolver = null;
   private Log log = null;
 
@@ -81,14 +81,14 @@ public class DigestRule implements EnforcerRule {
       localRepository = (ArtifactRepository) helper.evaluate("${localRepository}");
 
       // Due to backwards compatibility issues the deprecated interface must be used here
-      artifactFactory = (ArtifactFactory) helper.getComponent(ArtifactFactory.class);
+      artifactFactory = (DefaultArtifactFactory) helper.getComponent(ArtifactFactory.class);
 
       // Get the artifact resolver
       resolver = (ArtifactResolver) helper.getComponent(ArtifactResolver.class);
 
-      // Build the snapshot first
+      // Build the URN snapshot first
       if (buildSnapshot) {
-        buildSnapshot(mavenProject, log);
+        buildSnapshot(log);
       }
 
       // Check for missing URNs (OK if we're just making a snapshot)
@@ -111,22 +111,21 @@ public class DigestRule implements EnforcerRule {
   }
 
   /**
-   * @param project The project
    * @param log     The project log
    *
    * @throws IOException           If something goes wrong
    * @throws EnforcerRuleException If something goes wrong
    */
-  private void buildSnapshot(MavenProject project, Log log) throws IOException, EnforcerRuleException {
+  private void buildSnapshot(Log log) throws IOException, EnforcerRuleException {
 
     log.info("Building snapshot whitelist of all current artifacts");
 
     List<String> whitelist = new ArrayList<String>();
 
     List<Artifact> checklist = new ArrayList<Artifact>();
-    checklist.addAll(project.getArtifacts());
-    checklist.addAll(project.getPluginArtifacts());
-    checklist.addAll(project.getExtensionArtifacts());
+    checklist.addAll(mavenProject.getArtifacts());
+    checklist.addAll(mavenProject.getPluginArtifacts());
+    checklist.addAll(mavenProject.getExtensionArtifacts());
 
     for (Artifact artifact : checklist) {
 
@@ -223,12 +222,21 @@ public class DigestRule implements EnforcerRule {
       String hash = coordinates[6];
 
       VersionRange versionRange = VersionRange.createFromVersion(version);
-      Artifact artifact = artifactFactory.createDependencyArtifact(groupId, artifactId, versionRange, type, classifier, scope);
+      Artifact urnArtifact = artifactFactory.createDependencyArtifact(groupId, artifactId, versionRange, type, classifier, scope);
 
-      resolveArtifact(artifact);
+      // Check artifact is in the project dependency chain before resolving
+      // to cover situation that the URN snapshot is not updated in line with
+      // dependency changes
+      if (!mavenProject.getArtifacts().contains(urnArtifact) && !mavenProject.getPluginArtifacts().contains(urnArtifact)) {
+        log.error("*** CRITICAL FAILURE *** Listed artifact not in project dependencies. You may need to update the URN whitelist in response to a changed dependency.");
+        failed = true;
+        break;
+      }
+
+      resolveArtifact(urnArtifact);
 
       // Check the SHA1
-      String actual = digest(artifact.getFile());
+      String actual = digest(urnArtifact.getFile());
       if (!actual.equals(hash)) {
         log.error("*** CRITICAL FAILURE *** Artifact does not match. Possible dependency-chain attack. Expected='" + hash + "' Actual='" + actual + "'");
         failed = true;
@@ -242,18 +250,14 @@ public class DigestRule implements EnforcerRule {
   }
 
   /**
-   *
-   * @param artifact The unresolved artifact
-   * @throws EnforcerRuleException If something goes wrong
+   * @param artifact The unresolved artifact which may be downloaded from remote
    */
-  private void resolveArtifact(Artifact artifact) throws EnforcerRuleException {
-    try {
-      resolver.resolve(artifact, mavenProject.getRemoteArtifactRepositories(), localRepository);
-    } catch (ArtifactResolutionException e) {
-      throw new EnforcerRuleException("Failing due to artifact resolution: " + e.getLocalizedMessage(), e);
-    } catch (ArtifactNotFoundException e) {
-      throw new EnforcerRuleException("Failing due to artifact not found: " + e.getLocalizedMessage(), e);
-    }
+  private void resolveArtifact(Artifact artifact) {
+    ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+    request.setArtifact(artifact);
+    request.setRemoteRepositories(mavenProject.getRemoteArtifactRepositories());
+    request.setLocalRepository(localRepository);
+    resolver.resolve(request);
   }
 
   /**

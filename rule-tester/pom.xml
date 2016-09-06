@@ -93,7 +93,7 @@
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15</artifactId>
-      <version>1.45</version> <!-- Change version to 1.45 to see a failure -->
+      <version>1.46</version> <!-- Change version to 1.45 to see a failure -->
     </dependency>
 
     <!-- Hibernate has several layers of transitive dependencies -->

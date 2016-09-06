@@ -47,18 +47,6 @@
                   <urns>
                     <urn>antlr:antlr:2.7.7:jar:null:compile:83cd2cd674a217ade95a4bb83a8a14f351f48bd0</urn>
                     <urn>dom4j:dom4j:1.6.1:jar:null:compile:5d3ccc056b6f056dbf0dddfdf43894b9065a8f94</urn>
-                    <urn>org.apache.maven.plugins:maven-clean-plugin:2.4.1:maven-plugin:null:runtime:c3ad1d9e5ee3daeac15f8e18e987a214bbaa343a</urn>
-                    <urn>org.apache.maven.plugins:maven-compiler-plugin:3.1:maven-plugin:null:runtime:9977a8d04e75609cf01badc4eb6a9c7198c4c5ea</urn>
-                    <urn>org.apache.maven.plugins:maven-deploy-plugin:2.7:maven-plugin:null:runtime:6dadfb75679ca010b41286794f737088ebfe12fd</urn>
-                    <urn>org.apache.maven.plugins:maven-enforcer-plugin:1.2:maven-plugin:null:runtime:6b755a9a0d618f8f57c0b5c4a0737a012e710a46</urn>
-                    <urn>org.apache.maven.plugins:maven-install-plugin:2.3.1:maven-plugin:null:runtime:fe692c15450a75d330510bffe9491264918f58e0</urn>
-                    <urn>org.apache.maven.plugins:maven-jar-plugin:2.3.2:maven-plugin:null:runtime:2e98edb5ec61e210b104bcf78fe4be2295526fc9</urn>
-                    <urn>org.apache.maven.plugins:maven-javadoc-plugin:2.9:maven-plugin:null:runtime:3a706c03cd500a43271d8691b1bc4889e3ba10a7</urn>
-                    <urn>org.apache.maven.plugins:maven-release-plugin:2.4:maven-plugin:null:runtime:f22d3ab344f48ae3b122d51be9e5eb9f5954c22e</urn>
-                    <urn>org.apache.maven.plugins:maven-resources-plugin:2.5:maven-plugin:null:runtime:4d0907396ac6a770e05c81f6e8ed6348740f86a0</urn>
-                    <urn>org.apache.maven.plugins:maven-site-plugin:3.0:maven-plugin:null:runtime:39e1d8d4dae56f948e0028890c426c2002331e8c</urn>
-                    <urn>org.apache.maven.plugins:maven-source-plugin:2.2:maven-plugin:null:runtime:d84bf3029413224cf806d777c37b4de2d4a111be</urn>
-                    <urn>org.apache.maven.plugins:maven-surefire-plugin:2.10:maven-plugin:null:runtime:311b64c90d02f51585713f1bfd927f54eb5cc7ba</urn>
                     <urn>org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile:d726ceb2dcc711ef066cc639c12d856128ea1ef1</urn>
                     <urn>org.hibernate.common:hibernate-commons-annotations:4.0.1.Final:jar:null:compile:78bcf608d997d0529be2f4f781fdc89e801c9e88</urn>
                     <urn>org.hibernate.javax.persistence:hibernate-jpa-2.0-api:1.0.1.Final:jar:null:compile:3306a165afa81938fc3d8a0948e891de9f6b192b</urn>

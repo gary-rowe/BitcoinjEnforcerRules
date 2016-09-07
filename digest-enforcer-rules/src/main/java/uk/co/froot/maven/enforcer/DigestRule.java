@@ -23,10 +23,7 @@ import java.io.IOException;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.List;
+import java.util.*;
 
 /**
  * <p>Enforcer rule to provide the following to build process:</p>
@@ -123,9 +120,9 @@ public class DigestRule implements EnforcerRule {
     List<String> whitelist = new ArrayList<String>();
 
     List<Artifact> checklist = new ArrayList<Artifact>();
-    checklist.addAll(mavenProject.getArtifacts());
-    checklist.addAll(mavenProject.getPluginArtifacts());
-    checklist.addAll(mavenProject.getExtensionArtifacts());
+    checklist.addAll(mavenProject.getArtifacts()); // Transitive named dependencies
+    checklist.addAll(mavenProject.getPluginArtifacts()); // Transitive named plugins
+    //checklist.addAll(mavenProject.getAttachedArtifacts()); // Source/javadoc artifacts
 
     for (Artifact artifact : checklist) {
 
@@ -204,6 +201,15 @@ public class DigestRule implements EnforcerRule {
 
     boolean failed = false;
 
+    // Build up a detailed map of all artifacts (project, plugins etc)
+    Set<String> projectUrns = new HashSet<String>();
+    for (Artifact artifact : mavenProject.getArtifacts()) {
+      projectUrns.add(artifact.toString());
+    }
+    for (Artifact artifact : mavenProject.getPluginArtifacts()) {
+      projectUrns.add(artifact.toString());
+    }
+
     for (String urn : urns) {
       log.info("Verifying URN: " + urn);
       // Decode it into artifact co-ordinates
@@ -227,7 +233,8 @@ public class DigestRule implements EnforcerRule {
       // Check artifact is in the project dependency chain before resolving
       // to cover situation that the URN snapshot is not updated in line with
       // dependency changes
-      if (!mavenProject.getArtifacts().contains(urnArtifact) && !mavenProject.getPluginArtifacts().contains(urnArtifact)) {
+      // Use the artifact toString() as a key to ensure all elements are checked (version, classifier, scope etc)
+      if (!projectUrns.contains(urnArtifact.toString())) {
         log.error("*** CRITICAL FAILURE *** Listed artifact not in project dependencies. You may need to update the URN whitelist in response to a changed dependency.");
         failed = true;
         break;
@@ -244,7 +251,8 @@ public class DigestRule implements EnforcerRule {
     }
 
     if (failed) {
-      throw new EnforcerRuleException("At least one artifact has not met expectations. You should manually verify the integrity of the affected artifacts against trusted sources.");
+      throw new EnforcerRuleException("At least one artifact has not met expectations. You should manually verify " +
+        "the integrity of the affected artifacts against trusted sources. Also check version, scope and classifier values.");
     }
 
   }

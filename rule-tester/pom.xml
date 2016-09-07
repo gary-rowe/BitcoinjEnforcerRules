@@ -6,7 +6,6 @@
     <groupId>uk.co.froot.maven.enforcer</groupId>
     <artifactId>digest-enforcer-parent</artifactId>
     <version>develop-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>rule-tester</artifactId>
@@ -37,8 +36,8 @@
                   <buildSnapshot>true</buildSnapshot>
 
                   <!-- List of required hashes for
-                        - org.bouncycastle:bcprov-jdk15:1.46
-                        - org.hibernate:hibernate-entitymanager:4.1.8.Final
+                        - org.bouncycastle:bcprov-jdk15:1.46:jar:null:compile
+                        - org.hibernate:hibernate-entitymanager:4.1.8.Final:jar:null:compile
 
                         Expect a failed build if the versions are changed
                   -->
@@ -82,6 +81,7 @@
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15</artifactId>
       <version>1.46</version> <!-- Change version to 1.45 to see a failure -->
+      <scope>compile</scope> <!-- Change scope to test to see a failure -->
     </dependency>
 
     <!-- Hibernate has several layers of transitive dependencies -->

@@ -119,21 +119,16 @@ public class DigestRule implements EnforcerRule {
 
     List<String> whitelist = new ArrayList<String>();
 
+    // Include all upstream named dependencies (project and plugin)
+    // Attached artifacts are downstream and can be ignored
     List<Artifact> checklist = new ArrayList<Artifact>();
-    checklist.addAll(mavenProject.getArtifacts()); // Transitive named dependencies
-    checklist.addAll(mavenProject.getPluginArtifacts()); // Transitive named plugins
-    //checklist.addAll(mavenProject.getAttachedArtifacts()); // Source/javadoc artifacts
+    checklist.addAll(mavenProject.getArtifacts());
+    checklist.addAll(mavenProject.getPluginArtifacts());
 
     for (Artifact artifact : checklist) {
 
-      String artifactUrn = String.format("%s:%s:%s:%s:%s:%s",
-        artifact.getGroupId(),
-        artifact.getArtifactId(),
-        artifact.getVersion(),
-        artifact.getType(),
-        artifact.getClassifier(),
-        artifact.getScope()
-      );
+      // Use the Maven URN for consistency
+      String artifactUrn = artifact.toString();
 
       log.debug("Examining artifact URN: " + artifactUrn);
 
@@ -202,6 +197,7 @@ public class DigestRule implements EnforcerRule {
     boolean failed = false;
 
     // Build up a detailed map of all artifacts (project, plugins etc)
+    // This mimics the process used in creating the snapshot whitelist
     Set<String> projectUrns = new HashSet<String>();
     for (Artifact artifact : mavenProject.getArtifacts()) {
       projectUrns.add(artifact.toString());

@@ -48,6 +48,11 @@ public class DigestRule implements EnforcerRule {
   private ArtifactResolver resolver = null;
   private Log log = null;
 
+  // Required for testing
+  protected void setUrns(String... urns) {
+    this.urns = urns;
+  }
+
   public String getCacheId() {
     return "id"; // This is not cacheable
   }
